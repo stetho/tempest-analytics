@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tempest-analytics"
+version = "0.1.0"
+description = "Meteorological calculations for the WeatherFlow Tempest weather station"
+requires-python = ">=3.12"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["analytics*"]
