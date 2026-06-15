@@ -136,8 +136,8 @@ around a Tempest station mounted on a house in Selhurst, South London.
 |---|---|---|---|
 | 1 | `tempest-logger` | Data collection service | ✅ Complete |
 | 2 | `tempest-analytics` | Derived calculations library | ✅ Complete |
-| 3 | `tempest-dashboard` | Web visualisation | 🚧 In progress |
-| 4 | — | Camera integration | 📋 Planned |
+| 3 | `tempest-dashboard` | Web visualisation | ✅ Complete |
+| 4 | `tempest-camera` | Camera integration | ✅ Complete |
 | 5 | `tempest-alerts` | Threshold alerting service (Go) | 📋 Planned |
 
 ## License
