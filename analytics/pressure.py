@@ -157,3 +157,93 @@ def zambretti_forecast(
         "trend": pressure_trend,
         "pressure": sea_level_pressure,
     }
+
+def storm_predictor(observations: list[dict]) -> dict:
+    """
+    Predict rain probability based on pressure trend over recent observations.
+
+    Uses rate of pressure change combined with current pressure level
+    to produce a rain probability and plain-English description.
+
+    Args:
+        observations: List of dicts with 'timestamp' and 'sea_level_pressure',
+                      ordered oldest to newest. Should cover at least 1 hour.
+
+    Returns:
+        dict with 'probability', 'category', 'description',
+        'change_rate', 'current_pressure', 'period_hours', and 'advice'
+
+    Raises:
+        ValueError: If fewer than 2 observations are provided.
+    """
+    if len(observations) < 2:
+        raise ValueError("Need at least 2 observations")
+
+    first = observations[0]
+    last = observations[-1]
+
+    pressure_diff = last["sea_level_pressure"] - first["sea_level_pressure"]
+    time_hours = (last["timestamp"] - first["timestamp"]) / 3600
+    rate = round(pressure_diff / time_hours, 3)
+
+    current_pressure = last["sea_level_pressure"]
+
+    if rate <= -2.0:
+        base_prob = 90
+        category = "Very High"
+        description = "Rapid pressure fall — storm likely"
+        advice = "Expect significant deterioration. Strong winds and heavy rain probable."
+    elif rate <= -1.0:
+        base_prob = 75
+        category = "High"
+        description = "Pressure falling quickly — rain likely"
+        advice = "Weather likely to worsen within a few hours. Take an umbrella."
+    elif rate <= -0.5:
+        base_prob = 55
+        category = "Moderate"
+        description = "Pressure falling — rain possible"
+        advice = "Conditions may deteriorate. Keep an eye on the sky."
+    elif rate <= -0.1:
+        base_prob = 30
+        category = "Low"
+        description = "Pressure easing slightly — settled for now"
+        advice = "No immediate concern but monitor pressure trend."
+    elif rate >= 1.0:
+        base_prob = 5
+        category = "Very Low"
+        description = "Pressure rising quickly — improving weather"
+        advice = "Conditions improving. Dry weather expected."
+    elif rate >= 0.5:
+        base_prob = 10
+        category = "Very Low"
+        description = "Pressure rising — weather improving"
+        advice = "Settling down. Rain unlikely in the near term."
+    elif rate >= 0.1:
+        base_prob = 15
+        category = "Very Low"
+        description = "Pressure rising slightly — stable conditions"
+        advice = "No rain expected in the near term."
+    else:
+        base_prob = 20
+        category = "Low"
+        description = "Pressure steady — settled conditions"
+        advice = "No significant change expected."
+
+    if current_pressure < 1005:
+        base_prob = min(95, base_prob + 20)
+        description += " — very low pressure"
+    elif current_pressure < 1010:
+        base_prob = min(95, base_prob + 10)
+    elif current_pressure > 1025:
+        base_prob = max(5, base_prob - 15)
+        description += " — high pressure system"
+
+    return {
+        "probability": base_prob,
+        "category": category,
+        "description": description,
+        "advice": advice,
+        "change_rate": rate,
+        "current_pressure": current_pressure,
+        "period_hours": round(time_hours, 1),
+    }

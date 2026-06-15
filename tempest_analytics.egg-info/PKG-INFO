@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: tempest-analytics
+Version: 0.1.0
+Summary: Meteorological calculations for the WeatherFlow Tempest weather station
+Requires-Python: >=3.12

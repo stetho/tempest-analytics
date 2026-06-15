@@ -79,3 +79,66 @@ class TestZambrettiForecast:
     def test_summer_month(self):
         result = zambretti_forecast(1015.0, "rising", month=7)
         assert result["letter"] is not None
+
+from analytics.pressure import storm_predictor
+
+class TestStormPredictor:
+
+    def test_requires_two_observations(self):
+        with pytest.raises(ValueError):
+            storm_predictor([{"timestamp": 1781363162, "sea_level_pressure": 1015.0}])
+
+    def test_rapid_fall_very_high_probability(self):
+        obs = [
+            {"timestamp": 1781363162, "sea_level_pressure": 1025.0},
+            {"timestamp": 1781374162, "sea_level_pressure": 1018.0},
+        ]
+        result = storm_predictor(obs)
+        assert result["probability"] >= 85
+        assert result["category"] == "Very High"
+
+    def test_rising_pressure_low_probability(self):
+        obs = [
+            {"timestamp": 1781363162, "sea_level_pressure": 1010.0},
+            {"timestamp": 1781374162, "sea_level_pressure": 1013.0},
+        ]
+        result = storm_predictor(obs)
+        assert result["probability"] <= 15
+
+    def test_very_low_pressure_increases_probability(self):
+        obs = [
+            {"timestamp": 1781363162, "sea_level_pressure": 1004.0},
+            {"timestamp": 1781374162, "sea_level_pressure": 1002.0},
+        ]
+        result = storm_predictor(obs)
+        assert result["probability"] >= 75
+
+    def test_high_pressure_reduces_probability(self):
+        obs = [
+            {"timestamp": 1781363162, "sea_level_pressure": 1028.0},
+            {"timestamp": 1781374162, "sea_level_pressure": 1029.0},
+        ]
+        result = storm_predictor(obs)
+        assert result["probability"] <= 10
+
+    def test_returns_required_keys(self):
+        obs = [
+            {"timestamp": 1781363162, "sea_level_pressure": 1015.0},
+            {"timestamp": 1781374162, "sea_level_pressure": 1014.0},
+        ]
+        result = storm_predictor(obs)
+        assert "probability" in result
+        assert "category" in result
+        assert "description" in result
+        assert "advice" in result
+        assert "change_rate" in result
+        assert "current_pressure" in result
+        assert "period_hours" in result
+
+    def test_change_rate_correct(self):
+        obs = [
+            {"timestamp": 1781363162, "sea_level_pressure": 1015.0},
+            {"timestamp": 1781374762, "sea_level_pressure": 1013.0},
+        ]
+        result = storm_predictor(obs)
+        assert result["change_rate"] < 0
