@@ -5,7 +5,7 @@ import math
 import pytest
 from analytics.evapotranspiration import penman_monteith_et
 
-LATITUDE = 51.38909
+LATITUDE = 51.4
 DATE = datetime.date(2026, 6, 15)
 
 # Realistic summer day observations
