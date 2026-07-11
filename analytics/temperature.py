@@ -201,3 +201,53 @@ def thermal_comfort(
         "category": category,
         "description": f"Feels like {comfort_temp}°C — {category.lower()}",
     }
+
+def thermal_stress(wet_bulb_globe_temperature: float) -> dict:
+    """
+    Calculate thermal stress risk based on Wet Bulb Globe Temperature (WBGT).
+
+    WBGT is the standard measure used by the WHO, sports governing bodies,
+    and military to assess heat stress risk during physical activity.
+    It accounts for temperature, humidity, wind and radiation in a single value.
+
+    Args:
+        wet_bulb_globe_temperature: WBGT in °C (provided directly by Tempest API)
+
+    Returns:
+        dict with 'risk_level', 'category', 'description', and 'advice'
+    """
+    wbgt = wet_bulb_globe_temperature
+
+    if wbgt < 18:
+        risk_level = "Low"
+        category = "Low risk"
+        description = "Comfortable conditions for all activity levels"
+        advice = "No restrictions — enjoy outdoor activity."
+    elif wbgt < 23:
+        risk_level = "Moderate"
+        category = "Moderate risk"
+        description = "Caution advised for prolonged intense activity"
+        advice = "Take regular breaks, stay hydrated, and monitor how you feel."
+    elif wbgt < 28:
+        risk_level = "High"
+        category = "High risk"
+        description = "Reduce intensity and duration of outdoor activity"
+        advice = "Avoid strenuous activity during the hottest part of the day. Stay in the shade where possible."
+    elif wbgt < 32:
+        risk_level = "Very High"
+        category = "Very high risk"
+        description = "Limit outdoor activity to essential tasks only"
+        advice = "Stay indoors during peak heat. Keep hydrated and check on vulnerable people."
+    else:
+        risk_level = "Extreme"
+        category = "Extreme risk"
+        description = "Dangerous conditions — cancel non-essential outdoor activity"
+        advice = "Do not exercise outdoors. Risk of heat stroke is significant."
+
+    return {
+        "risk_level": risk_level,
+        "category": category,
+        "wbgt": round(wbgt, 1),
+        "description": description,
+        "advice": advice,
+    }
