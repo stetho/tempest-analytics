@@ -203,3 +203,59 @@ def uv_dose_accumulator(observations: list[dict]) -> dict:
         "hours_above_3": round(hours_above_3, 2),
         "burn_risk": burn_risk,
     }
+def solar_energy_potential(observations: list[dict], poll_interval_seconds: int = 600) -> dict:
+    """
+    Calculate cumulative solar energy received today in kWh/m².
+
+    Integrates solar radiation over time using the midpoint rule.
+    1 W/m² sustained for 1 hour = 1 Wh/m² = 0.001 kWh/m².
+
+    Args:
+        observations:          List of dicts with 'solar_radiation' field,
+                               ordered oldest first, covering today only.
+        poll_interval_seconds: Polling interval in seconds.
+
+    Returns:
+        dict with 'kwh_m2_today', 'peak_w_m2', 'description', and 'context'
+    """
+    if not observations:
+        return {
+            "kwh_m2_today": 0.0,
+            "peak_w_m2": 0.0,
+            "description": "No data",
+            "context": "",
+        }
+
+    total_wh = 0.0
+    peak = 0.0
+
+    for obs in observations:
+        radiation = obs.get("solar_radiation", 0.0) or 0.0
+        total_wh += radiation * (poll_interval_seconds / 3600)
+        peak = max(peak, radiation)
+
+    kwh_m2 = round(total_wh / 1000, 3)
+
+    # Context based on typical SE England values
+    if kwh_m2 >= 6.0:
+        description = "Excellent solar day"
+        context = "Exceptional irradiance — comparable to a Mediterranean summer day"
+    elif kwh_m2 >= 4.0:
+        description = "Good solar day"
+        context = "Strong irradiance — good conditions for solar generation"
+    elif kwh_m2 >= 2.0:
+        description = "Moderate solar day"
+        context = "Moderate irradiance — partial cloud reducing potential"
+    elif kwh_m2 >= 0.5:
+        description = "Poor solar day"
+        context = "Low irradiance — heavy cloud cover limiting generation"
+    else:
+        description = "Minimal solar energy"
+        context = "Very low irradiance — overcast or night-dominated period"
+
+    return {
+        "kwh_m2_today": kwh_m2,
+        "peak_w_m2": round(peak, 1),
+        "description": description,
+        "context": context,
+    }
