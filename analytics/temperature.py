@@ -55,7 +55,6 @@ def absolute_humidity(air_temperature: float, relative_humidity: float) -> dict:
         "description": description,
     }
 
-
 def frost_risk(
     air_temperature: float,
     dew_point: float,
@@ -81,7 +80,14 @@ def frost_risk(
     """
     risk_score = 0
     factors = []
-
+    # Frost is physically impossible above 10°C air temperature
+    if air_temperature > 10:
+        return {
+            "risk_level": "None",
+            "risk_score": 0,
+            "description": "No frost risk",
+            "factors": [],
+        }
     if air_temperature <= 0:
         risk_score += 4
         factors.append("Air temperature at or below freezing")
