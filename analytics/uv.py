@@ -148,3 +148,38 @@ def _skin_type_summary(
         })
 
     return results
+
+def fetch_uv_forecast(latitude: float, longitude: float) -> list[dict]:
+    """
+    Fetch today's hourly UV index forecast from Open-Meteo.
+
+    Args:
+        latitude:  Location latitude in decimal degrees
+        longitude: Location longitude in decimal degrees
+
+    Returns:
+        List of dicts with 'time' (ISO string) and 'uv_index' (float),
+        covering today only, ordered chronologically.
+    """
+    import requests
+    import datetime
+
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "hourly": "uv_index",
+        "timezone": "Europe/London",
+        "forecast_days": 1,
+    }
+    response = requests.get(url, params=params, timeout=10)
+    response.raise_for_status()
+    data = response.json()
+
+    times = data["hourly"]["time"]
+    values = data["hourly"]["uv_index"]
+
+    return [
+        {"time": t, "uv_index": round(v, 2) if v is not None else 0.0}
+        for t, v in zip(times, values)
+    ]
